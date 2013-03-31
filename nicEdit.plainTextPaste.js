@@ -3,111 +3,117 @@
 
 "use strict";
 
-var nicPlainTextPaste = bkClass.extend({
+(function (nicEditors) {
 
-    construct: function (nicEditor) {
-        this.ne = nicEditor;
-        nicEditor.addEvent('add', this.add.closureListener(this));
-        this.pasteCache = '';
-    },
+	var div;
 
-    add: function (instance) {
-        this.elm = instance.elm;
-        this.elm.addEvent('paste', this.initPasteClean.closureListener(this));
-    },
+	nicEditors.registerPlugin(bkClass.extend({
 
-    cleanup: function (ni) {
-        
-    },
+		construct: function (nicEditor) {
+			this.ne = nicEditor;
+			nicEditor.addEvent('add', this.add.closureListener(this));
+			this.pasteCache = '';
+		},
 
-    initPasteClean: function () {
-        this.pasteCache = this.elm.innerHTML;
-        setTimeout(this.pasteClean.closure(this), 100);
-    },
+		add: function (instance) {
+			this.elm = instance.elm;
+			this.elm.addEvent('paste', this.initPasteClean.closureListener(this));
+		},
 
-    pasteClean: function () {
-        var matchedHead = "",
-			matchedTail = "",
-			newContent = this.elm.innerHTML,
-			newContentStart = 0,
-			newContentFinish = 0,
-			newSnippet = "",
-			i;
+		cleanup: function (ni) {
 
-        this.ne.fireEvent("get", this);
+		},
 
-        /* Find start of both strings that matches */
+		initPasteClean: function () {
+			this.pasteCache = this.elm.innerHTML;
+			setTimeout(this.pasteClean.closure(this), 100);
+		},
 
-        for (newContentStart = 0; newContent.charAt(newContentStart) === this.pasteCache.charAt(newContentStart); newContentStart++) {
-            matchedHead += this.pasteCache.charAt(newContentStart);
-        }
+		pasteClean: function () {
+			var matchedHead = "",
+				matchedTail = "",
+				newContent = this.elm.innerHTML,
+				newContentStart = 0,
+				newContentFinish = 0,
+				newSnippet = "",
+				i;
 
-        /* If newContentStart is inside a HTML tag, move to opening brace of tag */
-        for (i = newContentStart; i >= 0; i--) {
-            if (this.pasteCache.charAt(i) == "<") {
-                newContentStart = i;
-                matchedHead = this.pasteCache.substring(0, newContentStart);
+			this.ne.fireEvent("get", this);
 
-                break;
-            } else if (this.pasteCache.charAt(i) === ">") {
-                break;
-            }
-        }
+			/* Find start of both strings that matches */
 
-        newContent = this.reverse(newContent);
-        this.pasteCache = this.reverse(this.pasteCache);
+			for (newContentStart = 0; newContent.charAt(newContentStart) === this.pasteCache.charAt(newContentStart); newContentStart++) {
+				matchedHead += this.pasteCache.charAt(newContentStart);
+			}
 
-        /* Find end of both strings that matches */
-        for (newContentFinish = 0; newContent.charAt(newContentFinish) == this.pasteCache.charAt(newContentFinish); newContentFinish++) {
-            matchedTail += this.pasteCache.charAt(newContentFinish);
-        }
+			/* If newContentStart is inside a HTML tag, move to opening brace of tag */
+			for (i = newContentStart; i >= 0; i--) {
+				if (this.pasteCache.charAt(i) == "<") {
+					newContentStart = i;
+					matchedHead = this.pasteCache.substring(0, newContentStart);
 
-        /* If newContentFinish is inside a HTML tag, move to closing brace of tag */
-        for (i = newContentFinish; i >= 0; i--) {
-            if (this.pasteCache.charAt(i) == ">") {
-                newContentFinish = i;
-                matchedTail = this.pasteCache.substring(0, newContentFinish);
+					break;
+				} else if (this.pasteCache.charAt(i) === ">") {
+					break;
+				}
+			}
 
-                break;
-            } else if (this.pasteCache.charAt(i) == "<") {
-                break;
-            }
-        }
+			newContent = this.reverse(newContent);
+			this.pasteCache = this.reverse(this.pasteCache);
 
-        matchedTail = this.reverse(matchedTail);
+			/* Find end of both strings that matches */
+			for (newContentFinish = 0; newContent.charAt(newContentFinish) == this.pasteCache.charAt(newContentFinish); newContentFinish++) {
+				matchedTail += this.pasteCache.charAt(newContentFinish);
+			}
 
-        /* If there's no difference in pasted content */
-        if (newContentStart == newContent.length - newContentFinish) {
-            return false;
-        }
+			/* If newContentFinish is inside a HTML tag, move to closing brace of tag */
+			for (i = newContentFinish; i >= 0; i--) {
+				if (this.pasteCache.charAt(i) == ">") {
+					newContentFinish = i;
+					matchedTail = this.pasteCache.substring(0, newContentFinish);
 
-        newContent = this.reverse(newContent);
-        newSnippet = newContent.substring(newContentStart, newContent.length - newContentFinish);
-        newSnippet = this.cleanPaste(newSnippet);
+					break;
+				} else if (this.pasteCache.charAt(i) == "<") {
+					break;
+				}
+			}
 
-        this.content = matchedHead + newSnippet + matchedTail;
-        this.ne.fireEvent("set", this);
-        this.elm.innerHTML = this.content;
-    },
+			matchedTail = this.reverse(matchedTail);
 
-    reverse: function (sentString) {
-        var theString = "", i;
-        for (i = sentString.length - 1; i >= 0; i--) {
-            theString += sentString.charAt(i);
-        }
-        return theString;
-    },
+			/* If there's no difference in pasted content */
+			if (newContentStart == newContent.length - newContentFinish) {
+				return false;
+			}
 
-    cleanPaste: function (snippet) {
-        var div = document.createElement('div'),
-            text;
-        div.innerHTML = snippet;
-        text = div.text;
-        document.removeElement(div);
-        return text;
-    }
+			newContent = this.reverse(newContent);
+			newSnippet = newContent.substring(newContentStart, newContent.length - newContentFinish);
+			newSnippet = this.cleanPaste(newSnippet);
 
-});
+			this.content = matchedHead + newSnippet + matchedTail;
+			this.ne.fireEvent("set", this);
+			this.elm.innerHTML = this.content;
+		},
 
-nicEditors.registerPlugin(nicPlainTextPaste);
+		reverse: function (sentString) {
+			var theString = "", i;
+			for (i = sentString.length - 1; i >= 0; i--) {
+				theString += sentString.charAt(i);
+			}
+			return theString;
+		},
+
+		cleanPaste: function (snippet) {
+			var div, text;
+			if (!div) {
+				div = document.createElement('div');
+			}
+			div.innerHTML = snippet;
+			return div.innerText;
+		}
+
+	}));
+
+
+}(nicEditors));
+
 
