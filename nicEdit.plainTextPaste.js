@@ -1,18 +1,43 @@
-﻿/*globals bkClass, nicEditors */
+/*globals bkClass, nicEditors */
 /*jslint browser: true, plusplus: true, eqeq: true */
 
-"use strict";
+/* 
+
+	nicEdit.plainTextPaste.js version 0.05 
+
+	The basic structure of this is taken from 
+		https://bitbucket.org/pykello/nicedit-improved/commits/05a42fe5ab60 and from 
+		 Clean Word Paste Mod by Billy Flaherty (www.billyswebdesign.com/)
+
+	You may consider any code by mde (dwoof42@gmail.com) to be in the public domain.
+
+	usage is trivial.  Include this file after nicEdit, and by default all html pasted into a nicEditor will be replaced by plain text.  You
+	may set the options.plainTextMode property when creating the nicEditor to control this 
+
+	   options.plainTextMode = 'ignore', do nothing
+	   options.plainTextMode = 'plain' (default) : replace all pasted text with plain text (by using element.innerText)
+	   options.plainTextMode = 'allowHtml':   NOT YET IMPLEMENTED: parse the pasted text, 
+											allowing only those tags that are allowed by the current nicEditor
+
+*/
 
 (function (nicEditors) {
+	"use strict";
+
+	/* 
+	*/
+
 
 	var div;
 
 	nicEditors.registerPlugin(bkClass.extend({
 
 		construct: function (nicEditor) {
-			this.ne = nicEditor;
-			nicEditor.addEvent('add', this.add.closureListener(this));
-			this.pasteCache = '';
+			if (nicEditor.options.pasteMode !== 'allow') {
+				this.ne = nicEditor;
+				nicEditor.addEvent('add', this.add.closureListener(this));
+				this.pasteCache = '';
+			}
 		},
 
 		add: function (instance) {
