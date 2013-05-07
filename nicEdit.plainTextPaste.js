@@ -9,7 +9,7 @@
 		https://bitbucket.org/pykello/nicedit-improved/commits/05a42fe5ab60 and from 
 		 Clean Word Paste Mod by Billy Flaherty (www.billyswebdesign.com/)
 
-	You may consider any code by mde (dwoof42@gmail.com) to be in the public domain.
+	You may consider any code by me (dwoof42@gmail.com) to be in the public domain.
 
 	usage is trivial.  Include this file after nicEdit, and by default all html pasted into a nicEditor will be replaced by plain text.  You
 	may set the options.plainTextMode property when creating the nicEditor to control this 
@@ -133,7 +133,7 @@
 				div = document.createElement('div');
 			}
 			div.innerHTML = snippet;
-			return div.innerText;
+			return div.innerText || div.textContent;
 		}
 
 	}));
